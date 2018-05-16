@@ -1,135 +1,46 @@
 pragma solidity ^0.4.20;
 
-library SafeMath
-{
-    function mul(uint256 a, uint256 b) internal pure returns (uint256)
-    {
-        uint256 c = a * b;
-        assert(a == 0 || c / a == b);
-        
-        return c;
-    }
-    
-    function div(uint256 a, uint256 b) internal pure returns (uint256)
-    {
-        uint256 c = a / b;
-        
-        return c;
-    }
-    
-    function sub(uint256 a, uint256 b) internal pure returns (uint256)
-    {
-        assert(b <= a);
-        
-        return a - b;
-    }
-    
-    function add(uint256 a, uint256 b) internal pure returns (uint256)
-    {
-        uint256 c = a + b;
-        assert(c >= a);
-        
-        return c;
-    }
-}
+import "./SafeMath.sol";
+import "./ERC20Interface.sol";
+import "./Pausable.sol";
 
-contract ERC20Interface
-{
-    event Transfer(address indexed _from, address indexed _to, uint _value);
-    event Approval(address indexed _owner, address indexed _spender, uint _value);
-    
-    function totalSupply() constant public returns (uint _supply);
-    function balanceOf(address _who) constant public returns (uint _value);
-    function transfer(address _to, uint _value) public returns (bool _success);
-    function approve(address _spender, uint _value) public returns (bool _success);
-    function allowance(address _owner, address _spender) constant public returns (uint _allowance);
-    function transferFrom(address _from, address _to, uint _value) public returns (bool _success);
-}
 
-contract OwnerHelper
+contract PMSTToken is ERC20Interface, Pausable
 {
-    address public owner;
+    using SafeMath for uint256;
     
-    event OwnerTransferPropose(address indexed _from, address indexed _to);
+    event Burn(address indexed burner, uint256 value);
     
-    modifier onlyOwner
+    string public constant name = "PMST_Token";
+    string public constant symbol = "PM_LOCK";
+    uint public constant decimals = 18;
+    uint256 public totalSupply = 1200 * 1 ether;
+    
+    address public testAddr;
+    
+    bool public globalTokenLock;
+    
+    mapping (address => uint256) public balanceOf;
+    mapping (address => mapping(address => uint256)) public approvals;
+    
+    function PMSTToken() Ownable() public
     {
-        require(msg.sender == owner);
-        _;
-    }
-    
-    function OwnerHelper() public 
-    {
-        owner = msg.sender;
-    }
-    
-    function transferOwnership(address _to) onlyOwner public
-    {
-        require(_to != owner);
-        require(_to != address(0x0));
-        
-        owner = _to;
-        
-        OwnerTransferPropose(owner, _to);
-    }
-}
-
-contract PMSTToken is ERC20Interface, OwnerHelper
-{
-    using SafeMath for uint;
-    
-    address public owner;
-    
-    string public name;
-    uint public decimals;
-    string public symbol;
-    uint public totalSupply;
-    
-    uint constant private E18 = 1000000000000000000;
-    uint constant public maxSupply = 99999 * E18;
-    bool public tokenLock;
-    
-    mapping (address => uint) public balanceOf;
-    mapping (address => mapping(address => uint)) public approvals;
-    mapping (address => bool) public personalTokenLock;
-    
-    function PMSTToken() public
-    {
-        name = "PMSToken";
-        decimals = 18;
-        symbol = "PMST";
-        totalSupply = maxSupply;
-        tokenLock = true;
-        
-        owner = msg.sender;
+        globalTokenLock = true;
         
         balanceOf[msg.sender] = totalSupply;
     }
     
-    function totalSupply() constant public returns (uint)
+    function totalSupply() constant public returns (uint256)
     {
         return totalSupply;
     }
     
-    function balanceOf(address _who) constant public returns (uint)
+    function balanceOf(address _who) constant public returns (uint256)
     {
         return balanceOf[_who];
     }
     
-    function transfer(address _to, uint _value) public returns (bool)
-    {
-        require(balanceOf[msg.sender] >= _value);
-        require(isTokenLock(msg.sender, _to) == false);
-        
-        balanceOf[msg.sender] = balanceOf[msg.sender].sub(_value);
-        balanceOf[_to] = balanceOf[_to].add(_value);
-        
-        Transfer(msg.sender, _to, _value);
-        
-        return true;
-    }
-    
-    function approve(address _spender, uint _value) public returns (bool)
+    function approve(address _spender, uint256 _value) public returns (bool)
     {
         require(balanceOf[msg.sender] >= _value);
         
@@ -140,17 +51,40 @@ contract PMSTToken is ERC20Interface, OwnerHelper
         return true;
     }
     
-    function allowance(address _owner, address _spender) constant public returns (uint _allowance)
+    function allowance(address _owner, address _spender) constant public returns (uint256 _allowance)
     {
         return approvals[_owner] [_spender];
     }
     
-    function transferFrom(address _from, address _to, uint _value) public returns (bool _success)
+    function transfer(address _to, uint256 _value) public returns (bool)
     {
+        // global lock
+        require(isGlobalTokenLock() == false);
+        
+        require(_to != address(0));
+        require(balanceOf[msg.sender] >= _value);
+        require(balanceOf[_to].add(_value) > balanceOf[_to]);
+        
+        // transfer
+        balanceOf[msg.sender] = balanceOf[msg.sender].sub(_value);
+        balanceOf[_to] = balanceOf[_to].add(_value);
+        
+        Transfer(msg.sender, _to, _value);
+        
+        return true;
+    }
+    
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool _success)
+    {
+        // global lock
+        require(isGlobalTokenLock() == false);
+        
+        require(_to != address(0));
         require(balanceOf[_from] >= _value);
         require(approvals[_from][msg.sender] >= _value);
-        require(isTokenLock(msg.sender, _to) == false);
+        require(balanceOf[_to].add(_value) > balanceOf[_to]);
         
+        // transfer
         approvals[_from][msg.sender] = approvals[_from][msg.sender].sub(_value);
         balanceOf[_from] = balanceOf[_from].sub(_value);
         balanceOf[_to] = balanceOf[_to].add(_value);
@@ -160,32 +94,31 @@ contract PMSTToken is ERC20Interface, OwnerHelper
         return true;
     }
     
-    function isTokenLock(address _from, address _to) public constant returns (bool lock)
+    function isGlobalTokenLock() public constant returns (bool lock)
     {
         lock = false;
         
-        if(tokenLock == true)
-        {
-            lock = true;
-        }
-        
-        if (personalTokenLock[_from] == true || personalTokenLock[_to] == true)
+        if(globalTokenLock == true)
         {
             lock = true;
         }
     }
     
-    function removeTokenLock() onlyOwner public
+    function removeGlobalTokenLock() onlyOwner public
     {
-        require(tokenLock == true);
+        require(globalTokenLock == true);
         
-        tokenLock = false;
+        globalTokenLock = false;
     }
     
-    function removePersonalTokenLock(address _who) onlyOwner public
+    function burn(uint256 _value) onlyOwner public 
     {
-        require(personalTokenLock[_who] == true);
+        require(_value > 0);
+
+        address burner = msg.sender;
+        balanceOf[burner] = balanceOf[burner].sub(_value);
+        totalSupply = totalSupply.sub(_value);
         
-        personalTokenLock[_who] = false;
+        Burn(burner, _value);
     }
 }
