@@ -1,29 +1,42 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.21;
 
-contract Ownable
-{
-    address public owner;
-    
-    event OwnerTransferPropose(address indexed _from, address indexed _to);
-    
-    modifier onlyOwner
-    {
-        require(msg.sender == owner);
-        _;
-    }
-    
-    function Ownable() public 
-    {
-        owner = msg.sender;
-    }
-    
-    function transferOwnership(address _to) onlyOwner public
-    {
-        require(_to != owner);
-        require(_to != address(0x0));
-        
-        owner = _to;
-        
-        OwnerTransferPropose(owner, _to);
-    }
+
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+  address public owner;
+
+
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+
+  /**
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+   * account.
+   */
+  function Ownable() public {
+    owner = msg.sender;
+  }
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+  /**
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.
+   * @param newOwner The address to transfer ownership to.
+   */
+  function transferOwnership(address newOwner) public onlyOwner {
+    require(newOwner != address(0));
+    emit OwnershipTransferred(owner, newOwner);
+    owner = newOwner;
+  }
+
 }
