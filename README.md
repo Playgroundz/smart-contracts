@@ -15,4 +15,4 @@ ERC20 based token contract.
 [Truffle documentation](https://truffleframework.com/docs) for smart contracts development.
 
 # License
-MIT
+[MIT](https://github.com/Playgroundz/smart-contracts/blob/master/LICENSE)
