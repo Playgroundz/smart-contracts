@@ -1,6 +1,5 @@
-# Playgroundz smart contract
-**IOG Token**\
-ERC20 based token contract.
+# IOG Smart Contract
+The repository contains the ERC-20 Smart Contract for Playgroundz platform (IOG Token).
 
 # Prerequisites
 [node v8+](https://nodejs.org)\
