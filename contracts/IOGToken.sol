@@ -12,8 +12,8 @@ contract IOGToken is StandardToken, Ownable, Pausable {
     event AddressLocked(address indexed _owner, uint256 _expiry);
 
     // erc20 constants
-    string public constant name = "IOX4Token";
-    string public constant symbol = "IOX4";
+    string public constant name = "CC13Token";
+    string public constant symbol = "CC13";
     uint8 public constant decimals = 18;
     uint256 public constant TOTAL_SUPPLY = 120 * 1000 * (10 ** uint256(decimals));
 
@@ -21,10 +21,37 @@ contract IOGToken is StandardToken, Ownable, Pausable {
     mapping (address => uint256) public addressLocks;
 
     // constructor
-    constructor() public {
+    constructor(address[] addressList, uint256[] tokenAmountList, uint256[] lockedPeriodList) public {
         totalSupply_ = TOTAL_SUPPLY;
         balances[msg.sender] = TOTAL_SUPPLY;
         emit Transfer(0x0, msg.sender, TOTAL_SUPPLY);
+
+        // distribution
+        distribution(addressList, tokenAmountList, lockedPeriodList);
+    }
+
+    // distribution
+    function distribution(address[] addressList, uint256[] tokenAmountList, uint256[] lockedPeriodList) onlyOwner internal {
+        // Token allocation
+        // - foundation : 25%
+        // - platform ecosystem : 35%
+        // - early investor : 12.5%
+        // - private sale : 12.5%
+        // - board of advisor : 10%
+        // - bounty : 5%
+
+        for (uint i = 0; i < addressList.length; i++) {
+            uint256 lockedPeriod = lockedPeriodList[i];
+
+            // lock
+            if (0 < lockedPeriod) {
+                timeLock(addressList[i], tokenAmountList[i] * (10 ** uint256(decimals)), now + (lockedPeriod * 60));
+            }
+            // unlock
+            else {
+                transfer(addressList[i], tokenAmountList[i] * (10 ** uint256(decimals)));
+            }
+        }
     }
 
     // lock

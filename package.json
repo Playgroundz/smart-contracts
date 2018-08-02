@@ -1,0 +1,30 @@
+{
+  "name": "smart-contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "node-xlsx": "^0.12.1",
+    "openzeppelin-solidity": "1.11.0",
+    "truffle-hdwallet-provider": "0.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Playgroundz/smart-contracts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Playgroundz/smart-contracts/issues"
+  },
+  "homepage": "https://github.com/Playgroundz/smart-contracts#readme"
+}
