@@ -26,7 +26,7 @@ function readFile(path) {
 
 module.exports = function(deployer) {
   console.log("start");
-  let xlsData = readFile("./disribution.xlsx");
+  let xlsData = readFile("./token_distribution.xlsx");
   console.log("readFile:"+ xlsData.length);
 
   let addressArr = [];

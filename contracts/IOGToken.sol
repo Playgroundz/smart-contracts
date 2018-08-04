@@ -12,10 +12,10 @@ contract IOGToken is StandardToken, Ownable, Pausable {
     event AddressLocked(address indexed _owner, uint256 _expiry);
 
     // erc20 constants
-    string public constant name = "CC13Token";
-    string public constant symbol = "CC13";
+    string public constant name = "IOGToken";
+    string public constant symbol = "IOG";
     uint8 public constant decimals = 18;
-    uint256 public constant TOTAL_SUPPLY = 120 * 1000 * (10 ** uint256(decimals));
+    uint256 public constant TOTAL_SUPPLY = 2200000000 * (10 ** uint256(decimals));
 
     // lock
     mapping (address => uint256) public addressLocks;
@@ -45,7 +45,7 @@ contract IOGToken is StandardToken, Ownable, Pausable {
 
             // lock
             if (0 < lockedPeriod) {
-                timeLock(addressList[i], tokenAmountList[i] * (10 ** uint256(decimals)), now + (lockedPeriod * 60));
+                timeLock(addressList[i], tokenAmountList[i] * (10 ** uint256(decimals)), now + (lockedPeriod * 60 * 60 * 24));
             }
             // unlock
             else {
