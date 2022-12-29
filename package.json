@@ -10,7 +10,7 @@
     "dotenv": "^6.0.0",
     "node-xlsx": "^0.12.1",
     "openzeppelin-solidity": "1.11.0",
-    "truffle-hdwallet-provider": "0.0.6"
+    "truffle-hdwallet-provider": "1.0.17"
   },
   "devDependencies": {},
   "scripts": {
